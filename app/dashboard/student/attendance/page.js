@@ -1,21 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import api from '@/lib/api';
+import { API_URL } from '@/lib/config';
+import Cookies from 'js-cookie';
 import { Calendar, TrendingUp, Check, X, Sparkles } from 'lucide-react';
 
-interface AttendanceRecord {
-    id: string;
-    date: string;
-    status: string;
-    subject: {
-        name: string;
-        code: string;
-    };
-}
-
 export default function AttendancePage() {
-    const [records, setRecords] = useState<AttendanceRecord[]>([]);
+    const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -24,9 +15,29 @@ export default function AttendancePage() {
 
     const fetchAttendance = async () => {
         try {
-            const { data } = await api.get('/student/attendance');
-            setRecords(data.records);
+            console.log('API_URL:', API_URL);
+            const token = Cookies.get('token');
+            const response = await fetch(`${API_URL}/api/student/attendance`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                const data = await response.json();
+                if (response.ok) {
+                    setRecords(data.records);
+                } else {
+                    console.error('Server error:', data.error);
+                }
+            } else {
+                const text = await response.text();
+                console.error('Received non-JSON response:', text);
+            }
         } catch (error) {
+            console.error('Error fetching attendance:', error);
             console.error('Error fetching attendance:', error);
         } finally {
             setLoading(false);
@@ -75,7 +86,7 @@ export default function AttendancePage() {
         ? Math.round((overallStats.present / overallStats.total) * 100)
         : 0;
 
-    const getGradientForPercentage = (percentage: number) => {
+    const getGradientForPercentage = (percentage) => {
         if (percentage >= 90) return 'from-emerald-500 to-green-600';
         if (percentage >= 75) return 'from-blue-500 to-cyan-600';
         if (percentage >= 60) return 'from-amber-500 to-orange-600';
@@ -134,7 +145,7 @@ export default function AttendancePage() {
                                             cx="48"
                                             cy="48"
                                             r="40"
-                                            stroke="url(#gradient-{subject.name})"
+                                            stroke={`url(#gradient-${subject.name})`}
                                             strokeWidth="8"
                                             fill="none"
                                             strokeDasharray={`${(subject.percentage / 100) * 251} 251`}
@@ -203,8 +214,8 @@ export default function AttendancePage() {
                             >
                                 <div className="flex items-center gap-4 flex-1">
                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${record.status === 'PRESENT'
-                                            ? 'bg-green-100'
-                                            : 'bg-red-100'
+                                        ? 'bg-green-100'
+                                        : 'bg-red-100'
                                         }`}>
                                         {record.status === 'PRESENT' ? (
                                             <Check className="h-6 w-6 text-green-600" />
@@ -232,8 +243,8 @@ export default function AttendancePage() {
                                 <div className="ml-4">
                                     <span
                                         className={`px-4 py-2 rounded-full text-sm font-bold ${record.status === 'PRESENT'
-                                                ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
-                                                : 'bg-red-500 text-white shadow-lg shadow-red-500/30'
+                                            ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
+                                            : 'bg-red-500 text-white shadow-lg shadow-red-500/30'
                                             }`}
                                     >
                                         {record.status}

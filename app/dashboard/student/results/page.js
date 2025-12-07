@@ -10,7 +10,7 @@ export default function ResultsPage() {
         { name: 'MATHS', score: 88, grade: 'A', maxScore: 100 },
     ];
 
-    const getGradeColor = (grade: string) => {
+    const getGradeColor = (grade) => {
         if (grade.startsWith('A')) return 'from-green-500 to-emerald-500';
         if (grade.startsWith('B')) return 'from-blue-500 to-cyan-500';
         return 'from-orange-500 to-amber-500';

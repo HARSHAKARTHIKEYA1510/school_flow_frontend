@@ -1,117 +1,142 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import api from '@/lib/api';
+import { API_URL } from '@/lib/config';
 import { UserPlus, Calendar, LogOut, Loader2, Users, BookOpen, TrendingUp, Search, Plus, Check, X, Edit2, Trash2, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 
-interface Student {
-    id: string;
-    name: string;
-    rollNumber: string;
-    email: string;
-}
-
-interface Subject {
-    id: string;
-    name: string;
-    code: string;
-}
-
-interface AttendanceRecord {
-    id: string;
-    date: string;
-    status: 'PRESENT' | 'ABSENT';
-    student: Student;
-    subject: Subject;
-}
-
 export default function AdminDashboard() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<'students' | 'attendance' | 'view-attendance'>('students');
-    const [students, setStudents] = useState<Student[]>([]);
-    const [subjects, setSubjects] = useState<Subject[]>([]);
-    const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+    const [activeTab, setActiveTab] = useState('students');
+    const [students, setStudents] = useState([]);
+    const [subjects, setSubjects] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedStudentFilter, setSelectedStudentFilter] = useState<string>(''); // For filtering attendance by student
 
-    // Form states
+    // Student CRUD states
     const [newStudent, setNewStudent] = useState({ name: '', email: '', rollNumber: '' });
+    const [editStudentModal, setEditStudentModal] = useState(null);
+    const [deleteStudentId, setDeleteStudentId] = useState(null);
 
-    // Edit/Delete modals
-    const [editStudentModal, setEditStudentModal] = useState<Student | null>(null);
-    const [deleteStudentId, setDeleteStudentId] = useState<string | null>(null);
-    const [editAttendanceModal, setEditAttendanceModal] = useState<AttendanceRecord | null>(null);
-    const [deleteAttendanceId, setDeleteAttendanceId] = useState<string | null>(null);
+    // Attendance View states
+    const [attendanceRecords, setAttendanceRecords] = useState([]);
+    const [editAttendanceModal, setEditAttendanceModal] = useState(null);
+    const [deleteAttendanceId, setDeleteAttendanceId] = useState(null);
+    const [selectedStudentFilter, setSelectedStudentFilter] = useState('');
 
     useEffect(() => {
         fetchStudents();
         fetchSubjects();
-    }, []);
-
-    useEffect(() => {
         if (activeTab === 'view-attendance') {
             fetchAttendanceRecords();
         }
     }, [activeTab]);
 
+    const getAuthHeaders = () => {
+        const token = Cookies.get('token');
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+    };
+
     const fetchStudents = async () => {
         try {
-            const { data } = await api.get('/admin/students');
-            setStudents(data);
-        } catch (err) {
-            console.error('Failed to fetch students', err);
+            const response = await fetch(`${API_URL}/api/admin/students`, {
+                headers: getAuthHeaders()
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setStudents(data);
+            }
+        } catch (error) {
+            console.error('Error fetching students:', error);
         }
     };
 
     const fetchSubjects = async () => {
         try {
-            const { data } = await api.get('/admin/subjects');
-            setSubjects(data);
-        } catch (err) {
-            console.error('Failed to fetch subjects', err);
+            const response = await fetch(`${API_URL}/api/admin/subjects`, {
+                headers: getAuthHeaders()
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setSubjects(data);
+            }
+        } catch (error) {
+            console.error('Error fetching subjects:', error);
         }
     };
 
     const fetchAttendanceRecords = async () => {
         try {
-            const { data } = await api.get('/admin/attendance');
-            setAttendanceRecords(data);
-        } catch (err) {
-            console.error('Failed to fetch attendance', err);
+            const response = await fetch(`${API_URL}/api/admin/attendance`, {
+                headers: getAuthHeaders()
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setAttendanceRecords(data);
+            }
+        } catch (error) {
+            console.error('Error fetching attendance:', error);
         }
     };
 
-    const handleCreateStudent = async (e: React.FormEvent) => {
+    const handleCreateStudent = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const { data } = await api.post('/admin/students', newStudent);
-            alert(`Student created! Password: ${data.password}`);
-            setNewStudent({ name: '', email: '', rollNumber: '' });
-            fetchStudents();
-        } catch (err) {
+            const response = await fetch(`${API_URL}/api/admin/students`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(newStudent)
+            });
+
+            if (response.ok) {
+                const data = await response.json(); // Assuming password might be returned here
+                alert(`Student created! Password: ${data.password || 'Check console for details'}`);
+                await fetchStudents();
+                setNewStudent({ name: '', email: '', rollNumber: '' });
+            } else {
+                const errorData = await response.json();
+                alert(`Failed to create student: ${errorData.error}`);
+            }
+        } catch (error) {
+            console.error('Error creating student:', error);
             alert('Failed to create student');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleUpdateStudent = async (e: React.FormEvent) => {
+    const handleUpdateStudent = async (e) => {
         e.preventDefault();
         if (!editStudentModal) return;
         setLoading(true);
+
         try {
-            await api.put(`/admin/students/${editStudentModal.id}`, editStudentModal);
-            alert('Student updated successfully!');
-            setEditStudentModal(null);
-            fetchStudents();
-        } catch (err: any) {
-            console.error('Update student error:', err);
-            console.error('Error response:', err.response?.data);
-            alert(`Failed to update student: ${err.response?.data?.error || err.message}`);
+            const response = await fetch(`${API_URL}/api/admin/students/${editStudentModal.id}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    name: editStudentModal.name,
+                    email: editStudentModal.email,
+                    rollNumber: editStudentModal.rollNumber
+                })
+            });
+
+            if (response.ok) {
+                await fetchStudents();
+                setEditStudentModal(null);
+                alert('Student updated successfully');
+            } else {
+                const errorData = await response.json();
+                alert(`Failed to update student: ${errorData.error}`);
+            }
+        } catch (error) {
+            console.error('Error updating student:', error);
+            alert('Failed to update student');
         } finally {
             setLoading(false);
         }
@@ -120,38 +145,57 @@ export default function AdminDashboard() {
     const handleDeleteStudent = async () => {
         if (!deleteStudentId) return;
         setLoading(true);
+
         try {
-            await api.delete(`/admin/students/${deleteStudentId}`);
-            alert('Student deleted successfully!');
-            setDeleteStudentId(null);
-            fetchStudents();
-        } catch (err: any) {
-            console.error('Delete student error:', err);
-            console.error('Error response:', err.response?.data);
-            alert(`Failed to delete student: ${err.response?.data?.error || err.message}`);
+            const response = await fetch(`${API_URL}/api/admin/students/${deleteStudentId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                await fetchStudents();
+                setDeleteStudentId(null);
+                alert('Student deleted successfully');
+            } else {
+                const errorData = await response.json();
+                alert(`Failed to delete student: ${errorData.error}`);
+            }
+        } catch (error) {
+            console.error('Error deleting student:', error);
+            alert('Failed to delete student');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleUpdateAttendance = async (e: React.FormEvent) => {
+    const handleUpdateAttendance = async (e) => {
         e.preventDefault();
         if (!editAttendanceModal) return;
         setLoading(true);
+
         try {
-            await api.put(`/admin/attendance/${editAttendanceModal.id}`, {
-                studentId: editAttendanceModal.student.id,
-                subjectId: editAttendanceModal.subject.id,
-                date: editAttendanceModal.date,
-                status: editAttendanceModal.status
+            const response = await fetch(`${API_URL}/api/admin/attendance/${editAttendanceModal.id}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    status: editAttendanceModal.status,
+                    date: editAttendanceModal.date,
+                    subjectId: editAttendanceModal.subject.id, // Corrected from instruction to match original logic
+                    studentId: editAttendanceModal.student.id // Corrected from instruction to match original logic
+                })
             });
-            alert('Attendance updated successfully!');
-            setEditAttendanceModal(null);
-            fetchAttendanceRecords();
-        } catch (err: any) {
-            console.error('Update attendance error:', err);
-            console.error('Error response:', err.response?.data);
-            alert(`Failed to update attendance: ${err.response?.data?.error || err.message}`);
+
+            if (response.ok) {
+                await fetchAttendanceRecords();
+                setEditAttendanceModal(null);
+                alert('Attendance updated successfully');
+            } else {
+                const errorData = await response.json();
+                alert(`Failed to update attendance: ${errorData.error}`);
+            }
+        } catch (error) {
+            console.error('Error updating attendance:', error);
+            alert('Failed to update attendance');
         } finally {
             setLoading(false);
         }
@@ -160,15 +204,24 @@ export default function AdminDashboard() {
     const handleDeleteAttendance = async () => {
         if (!deleteAttendanceId) return;
         setLoading(true);
+
         try {
-            await api.delete(`/admin/attendance/${deleteAttendanceId}`);
-            alert('Attendance deleted successfully!');
-            setDeleteAttendanceId(null);
-            fetchAttendanceRecords();
-        } catch (err: any) {
-            console.error('Delete attendance error:', err);
-            console.error('Error response:', err.response?.data);
-            alert(`Failed to delete attendance: ${err.response?.data?.error || err.message}`);
+            const response = await fetch(`${API_URL}/api/admin/attendance/${deleteAttendanceId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                await fetchAttendanceRecords();
+                setDeleteAttendanceId(null);
+                alert('Attendance deleted successfully');
+            } else {
+                const errorData = await response.json();
+                alert(`Failed to delete attendance: ${errorData.error}`);
+            }
+        } catch (error) {
+            console.error('Error deleting attendance:', error);
+            alert('Failed to delete attendance');
         } finally {
             setLoading(false);
         }
@@ -176,15 +229,13 @@ export default function AdminDashboard() {
 
     const handleLogout = () => {
         Cookies.remove('token');
-        Cookies.remove('role');
+        Cookies.remove('user');
         router.push('/');
     };
 
-    const filteredStudents = students.filter(
-        (student) =>
-            student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            student.rollNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredStudents = students.filter(student =>
+        student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.rollNumber.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -615,7 +666,7 @@ export default function AdminDashboard() {
                                             type="radio"
                                             value="PRESENT"
                                             checked={editAttendanceModal.status === 'PRESENT'}
-                                            onChange={(e) => setEditAttendanceModal({ ...editAttendanceModal, status: e.target.value as 'PRESENT' | 'ABSENT' })}
+                                            onChange={(e) => setEditAttendanceModal({ ...editAttendanceModal, status: e.target.value })}
                                             className="sr-only"
                                         />
                                         <div className={`p-3 rounded-xl border-2 text-center font-bold transition-all ${editAttendanceModal.status === 'PRESENT'
@@ -630,7 +681,7 @@ export default function AdminDashboard() {
                                             type="radio"
                                             value="ABSENT"
                                             checked={editAttendanceModal.status === 'ABSENT'}
-                                            onChange={(e) => setEditAttendanceModal({ ...editAttendanceModal, status: e.target.value as 'PRESENT' | 'ABSENT' })}
+                                            onChange={(e) => setEditAttendanceModal({ ...editAttendanceModal, status: e.target.value })}
                                             className="sr-only"
                                         />
                                         <div className={`p-3 rounded-xl border-2 text-center font-bold transition-all ${editAttendanceModal.status === 'ABSENT'
@@ -691,7 +742,7 @@ export default function AdminDashboard() {
     );
 }
 
-function AttendanceMarker({ students, subjects }: { students: Student[]; subjects: Subject[] }) {
+function AttendanceMarker({ students, subjects }) {
     const [formData, setFormData] = useState({
         studentId: '',
         subjectId: '',
@@ -701,15 +752,28 @@ function AttendanceMarker({ students, subjects }: { students: Student[]; subject
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setMessage('');
 
         try {
-            await api.post('/admin/attendance', formData);
-            setMessage('success');
-            setTimeout(() => setMessage(''), 3000);
+            const token = Cookies.get('token');
+            const response = await fetch(`${API_URL}/api/admin/attendance`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                setMessage('success');
+                setTimeout(() => setMessage(''), 3000);
+            } else {
+                throw new Error('Failed to mark attendance');
+            }
         } catch (err) {
             setMessage('error');
             setTimeout(() => setMessage(''), 3000);

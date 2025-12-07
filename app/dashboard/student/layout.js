@@ -1,15 +1,10 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { ReactNode } from 'react';
 import Cookies from 'js-cookie';
 import { LayoutDashboard, BookOpen, Calendar, Award, LogOut } from 'lucide-react';
 
-interface StudentLayoutProps {
-    children: ReactNode;
-}
-
-export default function StudentLayout({ children }: StudentLayoutProps) {
+export default function StudentLayout({ children }) {
     const pathname = usePathname();
     const router = useRouter();
 
@@ -55,8 +50,8 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
                                 key={item.href}
                                 href={item.href}
                                 className={`group flex items-center gap-3 px-4 py-3.5 mb-2 rounded-xl transition-all duration-200 ${isActive
-                                        ? 'bg-white text-indigo-600 shadow-lg shadow-indigo-500/20'
-                                        : 'text-white/70 hover:bg-white/10 hover:text-white hover:shadow-lg'
+                                    ? 'bg-white text-indigo-600 shadow-lg shadow-indigo-500/20'
+                                    : 'text-white/70 hover:bg-white/10 hover:text-white hover:shadow-lg'
                                     }`}
                             >
                                 <Icon className={`h-5 w-5 transition-transform group-hover:scale-110 ${isActive ? 'text-indigo-600' : ''

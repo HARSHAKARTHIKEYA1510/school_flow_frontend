@@ -1,51 +1,48 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import api from '@/lib/api';
+import { API_URL } from '@/lib/config';
+import Cookies from 'js-cookie';
 import { Clock, MapPin } from 'lucide-react';
 
-interface TimetableEntry {
-    id: string;
-    startTime: string;
-    endTime: string;
-    room: string;
-    subject: {
-        name: string;
-        code: string;
-    };
-}
-
-interface AttendanceStats {
-    totalClasses: number;
-    attended: number;
-    percentage: number;
-}
-
 export default function StudentDashboard() {
-    const [timetable, setTimetable] = useState<TimetableEntry[]>([]);
-    const [stats, setStats] = useState<AttendanceStats | null>(null);
+    const [timetable, setTimetable] = useState([]);
+    const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetchData();
     }, []);
 
+    const getAuthHeaders = () => {
+        const token = Cookies.get('token');
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+    };
+
     const fetchData = async () => {
         try {
             const [timetableRes, attendanceRes] = await Promise.all([
-                api.get('/student/timetable'),
-                api.get('/student/attendance'),
+                fetch(`${API_URL}/api/student/timetable`, { headers: getAuthHeaders() }),
+                fetch(`${API_URL}/api/student/attendance`, { headers: getAuthHeaders() }),
             ]);
 
-            setTimetable(timetableRes.data);
+            if (timetableRes.ok && attendanceRes.ok) {
+                const timetableData = await timetableRes.json();
+                const attendanceData = await attendanceRes.json();
 
-            // Calculate attendance stats
-            const records = attendanceRes.data.records;
-            const totalClasses = records.length;
-            const attended = records.filter((r: any) => r.status === 'PRESENT').length;
-            const percentage = totalClasses > 0 ? Math.round((attended / totalClasses) * 100) : 0;
+                setTimetable(timetableData);
 
-            setStats({ totalClasses, attended, percentage });
+                // Calculate attendance stats
+                const records = attendanceData.records;
+                const totalClasses = records.length;
+                const attended = records.filter((r) => r.status === 'PRESENT').length;
+                const percentage = totalClasses > 0 ? Math.round((attended / totalClasses) * 100) : 0;
+
+                setStats({ totalClasses, attended, percentage });
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
