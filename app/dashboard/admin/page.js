@@ -50,7 +50,7 @@ export default function AdminDashboard() {
 
     const fetchStudents = async (page = 1) => {
         try {
-            const response = await fetch(`${API_URL}/api/admin/students?page=${page}&limit=10`, {
+            const response = await fetch(`${API_URL}/api/admin/students?page=${page}&limit=6`, {
                 headers: getAuthHeaders()
             });
             if (response.ok) {
@@ -84,7 +84,7 @@ export default function AdminDashboard() {
 
     const fetchAttendanceRecords = async (page = 1) => {
         try {
-            const response = await fetch(`${API_URL}/api/admin/attendance?page=${page}&limit=10`, {
+            const response = await fetch(`${API_URL}/api/admin/attendance?page=${page}&limit=6`, {
                 headers: getAuthHeaders()
             });
             if (response.ok) {
