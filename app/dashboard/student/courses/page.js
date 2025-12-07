@@ -4,10 +4,10 @@ import { BookOpen } from 'lucide-react';
 
 export default function CoursesPage() {
     const courses = [
-        { name: 'ADA', code: 'ADA', credits: 4, instructor: 'Dr. Smith' },
-        { name: 'AP', code: 'AP', credits: 3, instructor: 'Prof. Johnson' },
-        { name: 'DBMS', code: 'DBMS', credits: 4, instructor: 'Dr. Williams' },
-        { name: 'MATHS', code: 'MATHS', credits: 3, instructor: 'Prof. Brown' },
+        { name: 'ADA', code: 'ADA', credits: 4, instructor: 'Sai Bhargav' },
+        { name: 'AP', code: 'AP', credits: 3, instructor: 'Vishal Sharma' },
+        { name: 'DBMS', code: 'DBMS', credits: 4, instructor: 'Aayushi' },
+        { name: 'MATHS', code: 'MATHS', credits: 3, instructor: 'Adithya' },
     ];
 
     return (

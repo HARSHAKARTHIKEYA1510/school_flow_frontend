@@ -25,13 +25,20 @@ export default function AdminDashboard() {
     const [deleteAttendanceId, setDeleteAttendanceId] = useState(null);
     const [selectedStudentFilter, setSelectedStudentFilter] = useState('');
 
+    // Pagination states
+    const [studentPage, setStudentPage] = useState(1);
+    const [studentPagination, setStudentPagination] = useState({ totalPages: 1, page: 1 });
+    const [attendancePage, setAttendancePage] = useState(1);
+    const [attendancePagination, setAttendancePagination] = useState({ totalPages: 1, page: 1 });
+
     useEffect(() => {
-        fetchStudents();
-        fetchSubjects();
-        if (activeTab === 'view-attendance') {
-            fetchAttendanceRecords();
+        if (activeTab === 'students') {
+            fetchStudents(studentPage);
+        } else if (activeTab === 'view-attendance') {
+            fetchAttendanceRecords(attendancePage);
         }
-    }, [activeTab]);
+        fetchSubjects();
+    }, [activeTab, studentPage, attendancePage]);
 
     const getAuthHeaders = () => {
         const token = Cookies.get('token');
@@ -41,14 +48,20 @@ export default function AdminDashboard() {
         };
     };
 
-    const fetchStudents = async () => {
+    const fetchStudents = async (page = 1) => {
         try {
-            const response = await fetch(`${API_URL}/api/admin/students`, {
+            const response = await fetch(`${API_URL}/api/admin/students?page=${page}&limit=10`, {
                 headers: getAuthHeaders()
             });
             if (response.ok) {
                 const data = await response.json();
-                setStudents(data);
+                // Handle both old (array) and new (object with pagination) response formats for backward compatibility during deployment
+                if (Array.isArray(data)) {
+                    setStudents(data);
+                } else {
+                    setStudents(data.students);
+                    setStudentPagination(data.pagination);
+                }
             }
         } catch (error) {
             console.error('Error fetching students:', error);
@@ -69,14 +82,19 @@ export default function AdminDashboard() {
         }
     };
 
-    const fetchAttendanceRecords = async () => {
+    const fetchAttendanceRecords = async (page = 1) => {
         try {
-            const response = await fetch(`${API_URL}/api/admin/attendance`, {
+            const response = await fetch(`${API_URL}/api/admin/attendance?page=${page}&limit=10`, {
                 headers: getAuthHeaders()
             });
             if (response.ok) {
                 const data = await response.json();
-                setAttendanceRecords(data);
+                if (Array.isArray(data)) {
+                    setAttendanceRecords(data);
+                } else {
+                    setAttendanceRecords(data.records);
+                    setAttendancePagination(data.pagination);
+                }
             }
         } catch (error) {
             console.error('Error fetching attendance:', error);
@@ -96,7 +114,7 @@ export default function AdminDashboard() {
             if (response.ok) {
                 const data = await response.json(); // Assuming password might be returned here
                 alert(`Student created! Password: ${data.password || 'Check console for details'}`);
-                await fetchStudents();
+                await fetchStudents(studentPage);
                 setNewStudent({ name: '', email: '', rollNumber: '' });
             } else {
                 const errorData = await response.json();
@@ -127,7 +145,7 @@ export default function AdminDashboard() {
             });
 
             if (response.ok) {
-                await fetchStudents();
+                await fetchStudents(studentPage);
                 setEditStudentModal(null);
                 alert('Student updated successfully');
             } else {
@@ -153,7 +171,7 @@ export default function AdminDashboard() {
             });
 
             if (response.ok) {
-                await fetchStudents();
+                await fetchStudents(studentPage);
                 setDeleteStudentId(null);
                 alert('Student deleted successfully');
             } else {
@@ -186,7 +204,7 @@ export default function AdminDashboard() {
             });
 
             if (response.ok) {
-                await fetchAttendanceRecords();
+                await fetchAttendanceRecords(attendancePage);
                 setEditAttendanceModal(null);
                 alert('Attendance updated successfully');
             } else {
@@ -212,7 +230,7 @@ export default function AdminDashboard() {
             });
 
             if (response.ok) {
-                await fetchAttendanceRecords();
+                await fetchAttendanceRecords(attendancePage);
                 setDeleteAttendanceId(null);
                 alert('Attendance deleted successfully');
             } else {
@@ -442,6 +460,26 @@ export default function AdminDashboard() {
                                         </div>
                                     ))}
                                 </div>
+                                {/* Pagination Controls for Students */}
+                                <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-100">
+                                    <button
+                                        onClick={() => setStudentPage(p => Math.max(1, p - 1))}
+                                        disabled={studentPage === 1}
+                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Previous
+                                    </button>
+                                    <span className="text-sm text-gray-600">
+                                        Page {studentPage} of {studentPagination.totalPages}
+                                    </span>
+                                    <button
+                                        onClick={() => setStudentPage(p => Math.min(studentPagination.totalPages, p + 1))}
+                                        disabled={studentPage === studentPagination.totalPages}
+                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -541,6 +579,26 @@ export default function AdminDashboard() {
                                     </div>
                                 );
                             })()}
+                            {/* Pagination Controls for Attendance */}
+                            <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-100">
+                                <button
+                                    onClick={() => setAttendancePage(p => Math.max(1, p - 1))}
+                                    disabled={attendancePage === 1}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Previous
+                                </button>
+                                <span className="text-sm text-gray-600">
+                                    Page {attendancePage} of {attendancePagination.totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setAttendancePage(p => Math.min(attendancePagination.totalPages, p + 1))}
+                                    disabled={attendancePage === attendancePagination.totalPages}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Next
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
