@@ -1,18 +1,14 @@
 'use client';
-
 import { useEffect, useState } from 'react';
 import { API_URL } from '@/lib/config';
 import Cookies from 'js-cookie';
 import { Calendar, TrendingUp, Check, X, Sparkles } from 'lucide-react';
-
 export default function AttendancePage() {
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
-
     useEffect(() => {
         fetchAttendance();
     }, []);
-
     const fetchAttendance = async () => {
         try {
             console.log('API_URL:', API_URL);
@@ -23,7 +19,6 @@ export default function AttendancePage() {
                     'Authorization': `Bearer ${token}`
                 }
             });
-
             const contentType = response.headers.get("content-type");
             if (contentType && contentType.indexOf("application/json") !== -1) {
                 const data = await response.json();
@@ -43,10 +38,8 @@ export default function AttendancePage() {
             setLoading(false);
         }
     };
-
     const getSubjectStats = () => {
         const subjectMap = new Map();
-
         records.forEach((record) => {
             const key = record.subject.name;
             if (!subjectMap.has(key)) {
@@ -56,7 +49,6 @@ export default function AttendancePage() {
             stats.total++;
             if (record.status === 'PRESENT') stats.present++;
         });
-
         return Array.from(subjectMap.entries()).map(([name, stats]) => ({
             name,
             code: stats.code,
@@ -65,7 +57,6 @@ export default function AttendancePage() {
             total: stats.total,
         }));
     };
-
     if (loading) {
         return (
             <div className="flex items-center justify-center p-12">
@@ -76,7 +67,6 @@ export default function AttendancePage() {
             </div>
         );
     }
-
     const subjectStats = getSubjectStats();
     const overallStats = {
         total: records.length,
@@ -85,21 +75,17 @@ export default function AttendancePage() {
     const overallPercentage = overallStats.total > 0
         ? Math.round((overallStats.present / overallStats.total) * 100)
         : 0;
-
     const getGradientForPercentage = (percentage) => {
         if (percentage >= 90) return 'from-emerald-500 to-green-600';
         if (percentage >= 75) return 'from-blue-500 to-cyan-600';
         if (percentage >= 60) return 'from-amber-500 to-orange-600';
         return 'from-red-500 to-rose-600';
     };
-
     return (
         <div className="space-y-8">
-            {/* Header with overall stats */}
             <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-violet-700 rounded-3xl p-8 shadow-2xl">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32 blur-3xl"></div>
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full translate-y-32 -translate-x-32 blur-3xl"></div>
-
                 <div className="relative flex items-center justify-between">
                     <div>
                         <h1 className="text-4xl font-black text-white drop-shadow-lg mb-2">Attendance</h1>
@@ -111,25 +97,19 @@ export default function AttendancePage() {
                     </div>
                 </div>
             </div>
-
-            {/* Subject-wise Stats with enhanced cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {subjectStats.map((subject, index) => {
                     const gradient = getGradientForPercentage(subject.percentage);
-
                     return (
                         <div
                             key={subject.name}
                             className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border border-gray-100"
                             style={{ animationDelay: `${index * 100}ms` }}
                         >
-                            {/* Subject name with code */}
                             <div className="mb-4">
                                 <h3 className="text-xl font-bold text-gray-800">{subject.name}</h3>
                                 <p className="text-sm text-gray-500 font-medium">{subject.code}</p>
                             </div>
-
-                            {/* Circular progress */}
                             <div className="flex items-center justify-between mb-4">
                                 <div className="relative">
                                     <svg className="w-24 h-24 transform -rotate-90">
@@ -163,8 +143,6 @@ export default function AttendancePage() {
                                         <span className="text-2xl font-black text-gray-800">{subject.percentage}%</span>
                                     </div>
                                 </div>
-
-                                {/* Trending indicator */}
                                 <div className={`flex items-center gap-2 px-3 py-2 rounded-full ${subject.percentage >= 75 ? 'bg-green-100' : 'bg-red-100'
                                     }`}>
                                     {subject.percentage >= 75 ? (
@@ -180,8 +158,6 @@ export default function AttendancePage() {
                                     )}
                                 </div>
                             </div>
-
-                            {/* Class count */}
                             <div className="mt-4 text-center">
                                 <p className="text-sm text-gray-600">
                                     <span className="font-bold text-gray-800">{subject.present}</span> of{' '}
@@ -192,8 +168,6 @@ export default function AttendancePage() {
                     );
                 })}
             </div>
-
-            {/* Recent Records with modern card design */}
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
                 <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 border-b border-gray-200">
                     <div className="flex items-center gap-3">
@@ -203,7 +177,6 @@ export default function AttendancePage() {
                         <h2 className="text-2xl font-bold text-gray-800">Recent Attendance</h2>
                     </div>
                 </div>
-
                 <div className="p-6">
                     <div className="space-y-3">
                         {records.slice(0, 15).map((record, index) => (
@@ -223,12 +196,10 @@ export default function AttendancePage() {
                                             <X className="h-6 w-6 text-red-600" />
                                         )}
                                     </div>
-
                                     <div className="flex-1">
                                         <h4 className="font-bold text-gray-800">{record.subject.name}</h4>
                                         <p className="text-sm text-gray-500">{record.subject.code}</p>
                                     </div>
-
                                     <div className="text-right">
                                         <p className="font-semibold text-gray-700">
                                             {new Date(record.date).toLocaleDateString('en-US', {
@@ -239,7 +210,6 @@ export default function AttendancePage() {
                                         </p>
                                     </div>
                                 </div>
-
                                 <div className="ml-4">
                                     <span
                                         className={`px-4 py-2 rounded-full text-sm font-bold ${record.status === 'PRESENT'

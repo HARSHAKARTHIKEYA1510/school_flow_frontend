@@ -1,11 +1,9 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { API_URL } from '@/lib/config';
 import { UserPlus, Calendar, LogOut, Loader2, Users, BookOpen, TrendingUp, Search, Plus, Check, X, Edit2, Trash2, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
-
 export default function AdminDashboard() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('students');
@@ -13,24 +11,17 @@ export default function AdminDashboard() {
     const [subjects, setSubjects] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-
-    // Student CRUD states
     const [newStudent, setNewStudent] = useState({ name: '', email: '', rollNumber: '' });
     const [editStudentModal, setEditStudentModal] = useState(null);
     const [deleteStudentId, setDeleteStudentId] = useState(null);
-
-    // Attendance View states
     const [attendanceRecords, setAttendanceRecords] = useState([]);
     const [editAttendanceModal, setEditAttendanceModal] = useState(null);
     const [deleteAttendanceId, setDeleteAttendanceId] = useState(null);
     const [selectedStudentFilter, setSelectedStudentFilter] = useState('');
-
-    // Pagination states
     const [studentPage, setStudentPage] = useState(1);
     const [studentPagination, setStudentPagination] = useState({ totalPages: 1, page: 1 });
     const [attendancePage, setAttendancePage] = useState(1);
     const [attendancePagination, setAttendancePagination] = useState({ totalPages: 1, page: 1 });
-
     useEffect(() => {
         if (activeTab === 'students') {
             fetchStudents(studentPage);
@@ -39,7 +30,6 @@ export default function AdminDashboard() {
         }
         fetchSubjects();
     }, [activeTab, studentPage, attendancePage]);
-
     const getAuthHeaders = () => {
         const token = Cookies.get('token');
         return {
@@ -47,7 +37,6 @@ export default function AdminDashboard() {
             'Authorization': `Bearer ${token}`
         };
     };
-
     const fetchStudents = async (page = 1) => {
         try {
             const response = await fetch(`${API_URL}/api/admin/students?page=${page}&limit=6`, {
@@ -55,7 +44,6 @@ export default function AdminDashboard() {
             });
             if (response.ok) {
                 const data = await response.json();
-                // Handle both old (array) and new (object with pagination) response formats for backward compatibility during deployment
                 if (Array.isArray(data)) {
                     setStudents(data);
                 } else {
@@ -67,7 +55,6 @@ export default function AdminDashboard() {
             console.error('Error fetching students:', error);
         }
     };
-
     const fetchSubjects = async () => {
         try {
             const response = await fetch(`${API_URL}/api/admin/subjects`, {
@@ -81,7 +68,6 @@ export default function AdminDashboard() {
             console.error('Error fetching subjects:', error);
         }
     };
-
     const fetchAttendanceRecords = async (page = 1) => {
         try {
             const response = await fetch(`${API_URL}/api/admin/attendance?page=${page}&limit=6`, {
@@ -100,7 +86,6 @@ export default function AdminDashboard() {
             console.error('Error fetching attendance:', error);
         }
     };
-
     const handleCreateStudent = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -110,9 +95,8 @@ export default function AdminDashboard() {
                 headers: getAuthHeaders(),
                 body: JSON.stringify(newStudent)
             });
-
             if (response.ok) {
-                const data = await response.json(); // Assuming password might be returned here
+                const data = await response.json(); 
                 alert(`Student created! Password: ${data.password || 'Check console for details'}`);
                 await fetchStudents(studentPage);
                 setNewStudent({ name: '', email: '', rollNumber: '' });
@@ -127,12 +111,10 @@ export default function AdminDashboard() {
             setLoading(false);
         }
     };
-
     const handleUpdateStudent = async (e) => {
         e.preventDefault();
         if (!editStudentModal) return;
         setLoading(true);
-
         try {
             const response = await fetch(`${API_URL}/api/admin/students/${editStudentModal.id}`, {
                 method: 'PUT',
@@ -143,7 +125,6 @@ export default function AdminDashboard() {
                     rollNumber: editStudentModal.rollNumber
                 })
             });
-
             if (response.ok) {
                 await fetchStudents(studentPage);
                 setEditStudentModal(null);
@@ -159,17 +140,14 @@ export default function AdminDashboard() {
             setLoading(false);
         }
     };
-
     const handleDeleteStudent = async () => {
         if (!deleteStudentId) return;
         setLoading(true);
-
         try {
             const response = await fetch(`${API_URL}/api/admin/students/${deleteStudentId}`, {
                 method: 'DELETE',
                 headers: getAuthHeaders()
             });
-
             if (response.ok) {
                 await fetchStudents(studentPage);
                 setDeleteStudentId(null);
@@ -185,12 +163,10 @@ export default function AdminDashboard() {
             setLoading(false);
         }
     };
-
     const handleUpdateAttendance = async (e) => {
         e.preventDefault();
         if (!editAttendanceModal) return;
         setLoading(true);
-
         try {
             const response = await fetch(`${API_URL}/api/admin/attendance/${editAttendanceModal.id}`, {
                 method: 'PUT',
@@ -198,11 +174,10 @@ export default function AdminDashboard() {
                 body: JSON.stringify({
                     status: editAttendanceModal.status,
                     date: editAttendanceModal.date,
-                    subjectId: editAttendanceModal.subject.id, // Corrected from instruction to match original logic
-                    studentId: editAttendanceModal.student.id // Corrected from instruction to match original logic
+                    subjectId: editAttendanceModal.subject.id, 
+                    studentId: editAttendanceModal.student.id 
                 })
             });
-
             if (response.ok) {
                 await fetchAttendanceRecords(attendancePage);
                 setEditAttendanceModal(null);
@@ -218,17 +193,14 @@ export default function AdminDashboard() {
             setLoading(false);
         }
     };
-
     const handleDeleteAttendance = async () => {
         if (!deleteAttendanceId) return;
         setLoading(true);
-
         try {
             const response = await fetch(`${API_URL}/api/admin/attendance/${deleteAttendanceId}`, {
                 method: 'DELETE',
                 headers: getAuthHeaders()
             });
-
             if (response.ok) {
                 await fetchAttendanceRecords(attendancePage);
                 setDeleteAttendanceId(null);
@@ -244,18 +216,15 @@ export default function AdminDashboard() {
             setLoading(false);
         }
     };
-
     const handleLogout = () => {
         Cookies.remove('token');
         Cookies.remove('user');
         router.push('/');
     };
-
     const filteredStudents = students.filter(student =>
         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.rollNumber.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Navbar */}
@@ -285,7 +254,6 @@ export default function AdminDashboard() {
                                     <div className="text-xs text-gray-600">Subjects</div>
                                 </div>
                             </div>
-
                             <button
                                 onClick={handleLogout}
                                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-red-200 text-red-600 hover:bg-red-50 transition-all font-semibold"
@@ -297,7 +265,6 @@ export default function AdminDashboard() {
                     </div>
                 </div>
             </nav>
-
             <div className="max-w-7xl mx-auto py-8 px-6 lg:px-8">
                 {/* Tabs */}
                 <div className="flex gap-4 mb-8">
@@ -332,7 +299,6 @@ export default function AdminDashboard() {
                         <span>View Attendance</span>
                     </button>
                 </div>
-
                 {/* Content */}
                 {activeTab === 'students' && (
                     <div className="space-y-6">
@@ -344,7 +310,6 @@ export default function AdminDashboard() {
                                 </div>
                                 <h2 className="text-2xl font-bold text-gray-800">Create New Student</h2>
                             </div>
-
                             <form onSubmit={handleCreateStudent} className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
@@ -360,7 +325,6 @@ export default function AdminDashboard() {
                                             className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
                                         />
                                     </div>
-
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">
                                             Email Address *
@@ -374,7 +338,6 @@ export default function AdminDashboard() {
                                             className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
                                         />
                                     </div>
-
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">
                                             Roll Number *
@@ -389,7 +352,6 @@ export default function AdminDashboard() {
                                         />
                                     </div>
                                 </div>
-
                                 <button
                                     type="submit"
                                     disabled={loading}
@@ -399,7 +361,6 @@ export default function AdminDashboard() {
                                 </button>
                             </form>
                         </div>
-
                         {/* Student List Card */}
                         <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
                             <div className="bg-indigo-50 p-6 border-b border-gray-200">
@@ -410,7 +371,6 @@ export default function AdminDashboard() {
                                         </div>
                                         <h3 className="text-2xl font-bold text-gray-800">Student List</h3>
                                     </div>
-
                                     <div className="relative">
                                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                                         <input
@@ -423,7 +383,6 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
                             </div>
-
                             <div className="p-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {filteredStudents.map((student) => (
@@ -484,11 +443,9 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                 )}
-
                 {activeTab === 'attendance' && (
                     <AttendanceMarker students={students} subjects={subjects} />
                 )}
-
                 {activeTab === 'view-attendance' && (
                     <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
                         <div className="bg-indigo-50 p-6 border-b border-gray-200">
@@ -499,7 +456,6 @@ export default function AdminDashboard() {
                                     </div>
                                     <h3 className="text-2xl font-bold text-gray-800">Attendance Records</h3>
                                 </div>
-
                                 {/* Student Filter */}
                                 <div className="flex items-center gap-3">
                                     <label className="text-sm font-semibold text-gray-700">Filter by Student:</label>
@@ -518,13 +474,11 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
                         </div>
-
                         <div className="p-6">
                             {(() => {
                                 const filteredRecords = selectedStudentFilter
                                     ? attendanceRecords.filter(record => record.student.id === selectedStudentFilter)
                                     : attendanceRecords;
-
                                 return filteredRecords.length === 0 ? (
                                     <p className="text-center text-gray-500 py-8">
                                         {selectedStudentFilter
@@ -603,7 +557,6 @@ export default function AdminDashboard() {
                     </div>
                 )}
             </div>
-
             {/* Edit Student Modal */}
             {editStudentModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -657,7 +610,6 @@ export default function AdminDashboard() {
                     </div>
                 </div>
             )}
-
             {/* Delete Student Confirmation */}
             {deleteStudentId && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -682,7 +634,6 @@ export default function AdminDashboard() {
                     </div>
                 </div>
             )}
-
             {/* Edit Attendance Modal */}
             {editAttendanceModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -771,7 +722,6 @@ export default function AdminDashboard() {
                     </div>
                 </div>
             )}
-
             {/* Delete Attendance Confirmation */}
             {deleteAttendanceId && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -799,7 +749,6 @@ export default function AdminDashboard() {
         </div>
     );
 }
-
 function AttendanceMarker({ students, subjects }) {
     const [formData, setFormData] = useState({
         studentId: '',
@@ -809,12 +758,10 @@ function AttendanceMarker({ students, subjects }) {
     });
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setMessage('');
-
         try {
             const token = Cookies.get('token');
             const response = await fetch(`${API_URL}/api/admin/attendance`, {
@@ -825,7 +772,6 @@ function AttendanceMarker({ students, subjects }) {
                 },
                 body: JSON.stringify(formData)
             });
-
             if (response.ok) {
                 setMessage('success');
                 setTimeout(() => setMessage(''), 3000);
@@ -839,7 +785,6 @@ function AttendanceMarker({ students, subjects }) {
             setLoading(false);
         }
     };
-
     return (
         <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden max-w-3xl mx-auto">
             <div className="bg-indigo-50 p-8 border-b border-gray-200">
@@ -853,7 +798,6 @@ function AttendanceMarker({ students, subjects }) {
                     </div>
                 </div>
             </div>
-
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
                 <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Student</label>
@@ -871,7 +815,6 @@ function AttendanceMarker({ students, subjects }) {
                         ))}
                     </select>
                 </div>
-
                 <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Subject</label>
                     <select
@@ -888,7 +831,6 @@ function AttendanceMarker({ students, subjects }) {
                         ))}
                     </select>
                 </div>
-
                 <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Date</label>
                     <input
@@ -899,7 +841,6 @@ function AttendanceMarker({ students, subjects }) {
                         className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-gray-900 bg-white"
                     />
                 </div>
-
                 <div>
                     <label className="block text-sm font-bold text-gray-700 mb-3">Status</label>
                     <div className="flex gap-4">
@@ -943,7 +884,6 @@ function AttendanceMarker({ students, subjects }) {
                         </label>
                     </div>
                 </div>
-
                 <button
                     type="submit"
                     disabled={loading}
@@ -951,7 +891,6 @@ function AttendanceMarker({ students, subjects }) {
                 >
                     {loading ? 'Saving...' : 'Save Attendance'}
                 </button>
-
                 {message && (
                     <div
                         className={`p-4 rounded-xl text-center font-semibold ${message === 'success'

@@ -1,7 +1,5 @@
 'use client';
-
 import { BookOpen } from 'lucide-react';
-
 export default function CoursesPage() {
     const courses = [
         { name: 'ADA', code: 'ADA', credits: 4, instructor: 'Sai Bhargav' },
@@ -9,11 +7,9 @@ export default function CoursesPage() {
         { name: 'DBMS', code: 'DBMS', credits: 4, instructor: 'Aayushi' },
         { name: 'MATHS', code: 'MATHS', credits: 3, instructor: 'Adithya' },
     ];
-
     return (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold text-gray-800">Courses</h1>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {courses.map((course) => (
                     <div key={course.code} className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">

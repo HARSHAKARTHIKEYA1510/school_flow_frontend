@@ -1,19 +1,15 @@
 'use client';
-
 import { useEffect, useState } from 'react';
 import { API_URL } from '@/lib/config';
 import Cookies from 'js-cookie';
 import { Clock, MapPin } from 'lucide-react';
-
 export default function StudentDashboard() {
     const [timetable, setTimetable] = useState([]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
-
     useEffect(() => {
         fetchData();
     }, []);
-
     const getAuthHeaders = () => {
         const token = Cookies.get('token');
         return {
@@ -21,26 +17,20 @@ export default function StudentDashboard() {
             'Authorization': `Bearer ${token}`
         };
     };
-
     const fetchData = async () => {
         try {
             const [timetableRes, attendanceRes] = await Promise.all([
                 fetch(`${API_URL}/api/student/timetable`, { headers: getAuthHeaders() }),
                 fetch(`${API_URL}/api/student/attendance`, { headers: getAuthHeaders() }),
             ]);
-
             if (timetableRes.ok && attendanceRes.ok) {
                 const timetableData = await timetableRes.json();
                 const attendanceData = await attendanceRes.json();
-
                 setTimetable(timetableData);
-
-                // Calculate attendance stats
                 const records = attendanceData.records;
                 const totalClasses = records.length;
                 const attended = records.filter((r) => r.status === 'PRESENT').length;
                 const percentage = totalClasses > 0 ? Math.round((attended / totalClasses) * 100) : 0;
-
                 setStats({ totalClasses, attended, percentage });
             }
         } catch (error) {
@@ -49,7 +39,6 @@ export default function StudentDashboard() {
             setLoading(false);
         }
     };
-
     if (loading) {
         return (
             <div className="flex items-center justify-center h-screen">
@@ -57,12 +46,10 @@ export default function StudentDashboard() {
             </div>
         );
     }
-
     const getDayName = () => {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         return days[new Date().getDay()];
     };
-
     return (
         <div className="space-y-8">
             {/* Welcome Header */}
@@ -70,7 +57,6 @@ export default function StudentDashboard() {
                 <h1 className="text-3xl font-bold">Welcome back! 👋</h1>
                 <p className="text-indigo-100 mt-2">Here's what's happening today</p>
             </div>
-
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Attendance Card */}
@@ -115,7 +101,6 @@ export default function StudentDashboard() {
                         </p>
                     </div>
                 </div>
-
                 {/* Today's Summary */}
                 <div className="bg-white rounded-2xl p-6 shadow-lg">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">Today's Summary</h3>
@@ -136,11 +121,9 @@ export default function StudentDashboard() {
                     </div>
                 </div>
             </div>
-
             {/* Today's Timetable */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
                 <h3 className="text-xl font-semibold text-gray-800 mb-6">Today's Timetable</h3>
-
                 {timetable.length === 0 ? (
                     <div className="text-center py-12">
                         <p className="text-gray-500">No classes scheduled for today 🎉</p>
@@ -158,13 +141,11 @@ export default function StudentDashboard() {
                                         <p className="text-sm text-gray-500">{entry.subject.code}</p>
                                     </div>
                                 </div>
-
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2 text-sm text-gray-600">
                                         <Clock className="h-4 w-4 text-indigo-500" />
                                         <span>{entry.startTime} - {entry.endTime}</span>
                                     </div>
-
                                     {entry.room && (
                                         <div className="flex items-center gap-2 text-sm text-gray-600">
                                             <MapPin className="h-4 w-4 text-indigo-500" />

@@ -1,26 +1,21 @@
 'use client';
-
 import { usePathname, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { LayoutDashboard, BookOpen, Calendar, Award, LogOut } from 'lucide-react';
-
 export default function StudentLayout({ children }) {
     const pathname = usePathname();
     const router = useRouter();
-
     const navItems = [
         { href: '/dashboard/student', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/dashboard/student/courses', label: 'Courses', icon: BookOpen },
         { href: '/dashboard/student/attendance', label: 'Attendance', icon: Calendar },
         { href: '/dashboard/student/results', label: 'Results', icon: Award },
     ];
-
     const handleLogout = () => {
         Cookies.remove('token');
         Cookies.remove('role');
         router.push('/');
     };
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50">
             {/* Enhanced Sidebar with modern design */}
@@ -39,12 +34,10 @@ export default function StudentLayout({ children }) {
                         </div>
                     </div>
                 </div>
-
                 <nav className="mt-6 px-3">
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
-
                         return (
                             <a
                                 key={item.href}
@@ -61,7 +54,6 @@ export default function StudentLayout({ children }) {
                         );
                     })}
                 </nav>
-
                 {/* Enhanced logout button */}
                 <button
                     onClick={handleLogout}
@@ -71,7 +63,6 @@ export default function StudentLayout({ children }) {
                     <span>Logout</span>
                 </button>
             </aside>
-
             {/* Main Content with enhanced spacing */}
             <main className="ml-64 p-8">
                 {children}

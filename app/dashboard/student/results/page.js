@@ -1,7 +1,5 @@
 'use client';
-
 import { Trophy, Award } from 'lucide-react';
-
 export default function ResultsPage() {
     const subjects = [
         { name: 'ADA', score: 85, grade: 'A', maxScore: 100 },
@@ -9,20 +7,16 @@ export default function ResultsPage() {
         { name: 'DBMS', score: 78, grade: 'B+', maxScore: 100 },
         { name: 'MATHS', score: 88, grade: 'A', maxScore: 100 },
     ];
-
     const getGradeColor = (grade) => {
         if (grade.startsWith('A')) return 'from-green-500 to-emerald-500';
         if (grade.startsWith('B')) return 'from-blue-500 to-cyan-500';
         return 'from-orange-500 to-amber-500';
     };
-
     const totalScore = subjects.reduce((sum, s) => sum + s.score, 0);
     const averageScore = Math.round(totalScore / subjects.length);
-
     return (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold text-gray-800">Results</h1>
-
             {/* Overall Performance */}
             <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl p-8 text-white">
                 <div className="flex items-center gap-4">
@@ -34,7 +28,6 @@ export default function ResultsPage() {
                     </div>
                 </div>
             </div>
-
             {/* Subject Results */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {subjects.map((subject) => (
@@ -48,13 +41,11 @@ export default function ResultsPage() {
                                 {subject.grade}
                             </div>
                         </div>
-
                         <div className="space-y-3">
                             <div className="flex items-baseline gap-2">
                                 <span className="text-4xl font-bold text-gray-800">{subject.score}</span>
                                 <span className="text-gray-500">/ {subject.maxScore}</span>
                             </div>
-
                             <div className="bg-gray-200 rounded-full h-3">
                                 <div
                                     className={`h-3 rounded-full bg-gradient-to-r ${getGradeColor(subject.grade)} transition-all`}

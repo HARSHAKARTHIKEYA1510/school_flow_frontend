@@ -1,10 +1,8 @@
 import "./globals.css";
-
 export const metadata = {
   title: "SchoolFlow",
   description: "School Management System",
 };
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
